@@ -24,19 +24,27 @@
     {#each stars as star}
         {#if onStarClick}
             <button
-                class="star clickable"
+                class="star-btn"
                 style="
                     left: {star.x}%;
                     top: {star.y}%;
-                    width: {star.size * 2}px;
-                    height: {star.size * 2}px;
-                    animation-delay: {star.delay}s;
+                    width: 24px;
+                    height: 24px;
                 "
                 on:click={() => {
                     onStarClick?.();
                 }}
                 aria-label="Click to reveal birthday card"
-            ></button>
+            >
+                <span
+                    class="star clickable"
+                    style="
+                        width: {star.size}px;
+                        height: {star.size}px;
+                        animation-delay: {star.delay}s;
+                    "
+                ></span>
+            </button>
         {:else}
             <div
                 class="star"
@@ -74,35 +82,53 @@
         padding: 0;
         cursor: default;
         pointer-events: none; /* Non-clickable stars don't interfere */
+        display: block;
+        margin: auto;
+        left: 0;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        position: absolute;
+    }
+
+    .star-btn {
+        position: absolute;
+        background: transparent;
+        border: none;
+        padding: 0;
+        margin: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1;
+        transition: box-shadow 0.2s;
+    }
+
+    .star-btn:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.6);
+        outline-offset: 2px;
     }
 
     .star.clickable {
+        pointer-events: none;
         cursor: pointer;
         transition: all 0.2s ease;
-        pointer-events: auto; /* Clickable stars can be clicked */
-        background: #ffffff; /* Back to white stars */
+        background: #ffffff;
         box-shadow: 0 0 8px #ffffff;
-        position: relative;
-        z-index: 1;
+        z-index: 2;
+        animation: twinkleClickable 1.5s infinite ease-in-out;
     }
 
-    .star.clickable:hover {
+    .star-btn:hover .star.clickable {
         transform: scale(1.5);
         opacity: 1;
         box-shadow:
             0 0 12px #ffffff,
             0 0 24px rgba(255, 255, 255, 0.5);
         animation: none; /* Pause twinkling on hover */
-    }
-
-    .star.clickable:focus {
-        outline: 2px solid rgba(255, 255, 255, 0.6);
-        outline-offset: 2px;
-    }
-
-    /* Override animation for clickable stars to make them more prominent */
-    .star.clickable {
-        animation: twinkleClickable 1.5s infinite ease-in-out;
     }
 
     @keyframes twinkleClickable {
