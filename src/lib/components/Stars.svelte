@@ -17,9 +17,6 @@
             size: Math.random() * 3 + 1,
             delay: Math.random() * 3,
         }));
-
-        console.log("Stars component mounted, onStarClick:", onStarClick);
-        console.log("Generated stars:", stars.length);
     });
 </script>
 
@@ -36,7 +33,6 @@
                     animation-delay: {star.delay}s;
                 "
                 on:click={() => {
-                    console.log("Star clicked!");
                     onStarClick?.();
                 }}
                 aria-label="Click to reveal birthday card"
