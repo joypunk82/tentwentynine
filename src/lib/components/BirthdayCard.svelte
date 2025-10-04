@@ -1,41 +1,35 @@
 <script lang="ts">
-    // Birthday card component with elegant typography and subtle animations
-    export let recipientName: string = "Friend";
-    export let age: number | null = null;
-    export let message: string = "Wishing you a wonderful year ahead!";
-    export let fromName: string = "";
+    // Birthday card for Taylor, from Mike, turning 35
+    // Animation: grows from star to full size
+    import { onMount } from "svelte";
+    let show = false;
+    onMount(() => {
+        setTimeout(() => {
+            show = true;
+        }, 50);
+    });
 </script>
 
-<div class="birthday-card">
+<div class="birthday-card grow-from-star {show ? 'show' : ''}">
     <div class="card-content">
-        <!-- Main birthday greeting -->
         <div class="greeting">
             <h1 class="happy-birthday">Happy Birthday</h1>
-            {#if recipientName}
-                <h2 class="recipient-name">{recipientName}</h2>
-            {/if}
-            {#if age}
-                <div class="age-celebration">
-                    <span class="age-number">{age}</span>
-                    <span class="age-label">years of awesome!</span>
-                </div>
-            {/if}
-        </div>
-
-        <!-- Personal message -->
-        <div class="message">
-            <p class="message-text">{message}</p>
-        </div>
-
-        <!-- From signature -->
-        {#if fromName}
-            <div class="signature">
-                <p class="from-text">With love,</p>
-                <p class="from-name">{fromName}</p>
+            <h2 class="recipient-name">Taylor</h2>
+            <div class="age-celebration">
+                <span class="age-number">35</span>
+                <span class="age-label">years of awesome!</span>
             </div>
-        {/if}
-
-        <!-- Decorative elements -->
+        </div>
+        <div class="message">
+            <p class="message-text">
+                Wishing you a magical year filled with love, laughter, and
+                adventure. You light up the sky, Taylor!
+            </p>
+        </div>
+        <div class="signature">
+            <p class="from-text">With love,</p>
+            <p class="from-name">Mike</p>
+        </div>
         <div class="decorative-stars">
             <span class="deco-star">✨</span>
             <span class="deco-star">⭐</span>
@@ -52,17 +46,27 @@
         transform: translateY(-50%);
         width: 350px;
         max-width: calc(100vw - 4rem);
-        z-index: 15; /* Above all sky elements */
+        z-index: 15;
         pointer-events: auto;
+        opacity: 0;
+        /* Start tiny for animation */
+        transform-origin: 40px 50%; /* left middle, approx where a star might be */
+        scale: 0.1;
+        transition: none;
     }
 
+    .birthday-card.show {
+        opacity: 1 !important;
+        scale: 1;
+        transition:
+            opacity 0.5s cubic-bezier(0.4, 2, 0.6, 1),
+            scale 0.8s cubic-bezier(0.4, 2, 0.6, 1);
+    }
+
+    /* Optionally, you can tweak the transform-origin to match the star's position more closely if needed */
+
     .card-content {
-        background: linear-gradient(
-            145deg,
-            rgba(255, 255, 255, 0.95) 0%,
-            rgba(255, 255, 255, 0.85) 50%,
-            rgba(248, 248, 255, 0.9) 100%
-        );
+        background: linear-gradient(145deg, #fff 0%, #fff 50%, #f8f8ff 100%);
         backdrop-filter: blur(10px);
         border: 2px solid rgba(255, 255, 255, 0.3);
         border-radius: 20px;
@@ -187,16 +191,7 @@
         animation-delay: 1.4s;
     }
 
-    @keyframes cardEntrance {
-        0% {
-            opacity: 0;
-            transform: translateY(-50%) translateX(-50px) scale(0.8);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(-50%) translateX(0) scale(1);
-        }
-    }
+    /* Remove old cardEntrance animation, replaced by grow-from-star transition */
 
     @keyframes rainbowShift {
         0%,

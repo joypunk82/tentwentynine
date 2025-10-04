@@ -11,12 +11,7 @@
 
 <AutumnSky onStarClick={handleStarClick}>
     {#if showCard}
-        <BirthdayCard
-            recipientName="Taylor"
-            age={35}
-            message="May your special day be filled with starlight, wonder, and all the magic you bring to the world!"
-            fromName="Mike"
-        />
+        <BirthdayCard />
     {/if}
 </AutumnSky>
 

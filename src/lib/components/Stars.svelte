@@ -108,8 +108,8 @@
     }
 
     .star-btn:focus {
-        outline: 2px solid rgba(255, 255, 255, 0.6);
-        outline-offset: 2px;
+        outline: none;
+        box-shadow: none;
     }
 
     .star.clickable {
