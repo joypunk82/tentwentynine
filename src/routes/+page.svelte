@@ -1,8 +1,24 @@
 <script lang="ts">
     import AutumnSky from "$lib/components/AutumnSky.svelte";
+    import BirthdayCard from "$lib/components/BirthdayCard.svelte";
+
+    let showCard = false;
+
+    function handleStarClick() {
+        showCard = true;
+    }
 </script>
 
-<AutumnSky />
+<AutumnSky onStarClick={handleStarClick}>
+    {#if showCard}
+        <BirthdayCard
+            recipientName="Taylor"
+            age={35}
+            message="May your special day be filled with starlight, wonder, and all the magic you bring to the world!"
+            fromName="Mike"
+        />
+    {/if}
+</AutumnSky>
 
 <style>
     @keyframes glow {

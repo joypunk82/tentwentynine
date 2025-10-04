@@ -4,6 +4,7 @@
 
     export let count: number = 100; // Number of stars to generate
     export let skyArea: number = 70; // Percentage of sky height to populate with stars
+    export let onStarClick: (() => void) | undefined = undefined;
 
     let stars: Array<{ x: number; y: number; size: number; delay: number }> =
         [];
@@ -16,21 +17,42 @@
             size: Math.random() * 3 + 1,
             delay: Math.random() * 3,
         }));
+
+        console.log("Stars component mounted, onStarClick:", onStarClick);
+        console.log("Generated stars:", stars.length);
     });
 </script>
 
 <div class="stars">
     {#each stars as star}
-        <div
-            class="star"
-            style="
-                left: {star.x}%;
-                top: {star.y}%;
-                width: {star.size}px;
-                height: {star.size}px;
-                animation-delay: {star.delay}s;
-            "
-        ></div>
+        {#if onStarClick}
+            <button
+                class="star clickable"
+                style="
+                    left: {star.x}%;
+                    top: {star.y}%;
+                    width: {star.size * 2}px;
+                    height: {star.size * 2}px;
+                    animation-delay: {star.delay}s;
+                "
+                on:click={() => {
+                    console.log("Star clicked!");
+                    onStarClick?.();
+                }}
+                aria-label="Click to reveal birthday card"
+            ></button>
+        {:else}
+            <div
+                class="star"
+                style="
+                    left: {star.x}%;
+                    top: {star.y}%;
+                    width: {star.size}px;
+                    height: {star.size}px;
+                    animation-delay: {star.delay}s;
+                "
+            ></div>
+        {/if}
     {/each}
 </div>
 
@@ -41,8 +63,8 @@
         left: 0;
         width: 100%;
         height: 100%;
-        pointer-events: none;
-        z-index: 1; /* Behind moon but above background */
+        pointer-events: auto; /* Always allow pointer events */
+        z-index: 8; /* Above content but below birthday card */
     }
 
     .star {
@@ -52,6 +74,51 @@
         opacity: 0.8;
         animation: twinkle 2s infinite ease-in-out;
         box-shadow: 0 0 6px #ffffff;
+        border: none;
+        padding: 0;
+        cursor: default;
+        pointer-events: none; /* Non-clickable stars don't interfere */
+    }
+
+    .star.clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        pointer-events: auto; /* Clickable stars can be clicked */
+        background: #ffffff; /* Back to white stars */
+        box-shadow: 0 0 8px #ffffff;
+        position: relative;
+        z-index: 1;
+    }
+
+    .star.clickable:hover {
+        transform: scale(1.5);
+        opacity: 1;
+        box-shadow:
+            0 0 12px #ffffff,
+            0 0 24px rgba(255, 255, 255, 0.5);
+        animation: none; /* Pause twinkling on hover */
+    }
+
+    .star.clickable:focus {
+        outline: 2px solid rgba(255, 255, 255, 0.6);
+        outline-offset: 2px;
+    }
+
+    /* Override animation for clickable stars to make them more prominent */
+    .star.clickable {
+        animation: twinkleClickable 1.5s infinite ease-in-out;
+    }
+
+    @keyframes twinkleClickable {
+        0%,
+        100% {
+            opacity: 0.7;
+            transform: scale(1);
+        }
+        50% {
+            opacity: 1;
+            transform: scale(1.15);
+        }
     }
 
     @keyframes twinkle {

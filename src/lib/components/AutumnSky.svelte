@@ -4,11 +4,13 @@
     import Stars from "./Stars.svelte";
     import ShootingStars from "./ShootingStars.svelte";
     import Horizon from "./Horizon.svelte";
+
+    export let onStarClick: (() => void) | undefined = undefined;
 </script>
 
 <div class="autumn-sky">
     <!-- Stars layer -->
-    <Stars count={120} skyArea={70} />
+    <Stars count={120} skyArea={70} {onStarClick} />
 
     <!-- Shooting stars layer -->
     <ShootingStars frequency={12500} variance={7500} />
@@ -42,7 +44,7 @@
 
     .content {
         position: relative;
-        z-index: 10;
+        z-index: 5; /* Lower than stars */
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -51,6 +53,11 @@
         padding: 2rem;
         text-align: center;
         color: #ffffff;
+        pointer-events: none; /* Don't block clicks to stars */
+    }
+
+    .content > :global(*) {
+        pointer-events: auto; /* Re-enable clicks for content children */
     }
 
     /* Add some subtle animated shooting stars */
