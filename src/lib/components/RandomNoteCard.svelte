@@ -4,7 +4,6 @@
 
 {#if note}
     <div class="random-note-card">
-        <h3>Random Note for Taylor</h3>
         <blockquote>{note.message}</blockquote>
         <div class="note-author">— {note.name}</div>
     </div>
