@@ -1,3 +1,28 @@
+import fs from 'fs';
+import path from 'path';
+// Return all notes (for demo: read from local folder if no blob storage)
+export const GET: RequestHandler = async () => {
+    const token = (globalThis as any).process?.env?.BLOB_READ_WRITE_TOKEN as string | undefined;
+    if (token) {
+        // TODO: Implement blob storage listing and reading for production
+        // For now, return empty array
+        return json([]);
+    } else {
+        // Local dev: read notes from a local folder (if exists)
+        const notesDir = path.resolve('notes');
+        let notes: any[] = [];
+        if (fs.existsSync(notesDir)) {
+            const files = fs.readdirSync(notesDir).filter(f => f.endsWith('.json'));
+            for (const file of files) {
+                try {
+                    const content = fs.readFileSync(path.join(notesDir, file), 'utf-8');
+                    notes.push(JSON.parse(content));
+                } catch { }
+            }
+        }
+        return json(notes);
+    }
+};
 import type { RequestHandler } from '@sveltejs/kit';
 import { json } from '@sveltejs/kit';
 
