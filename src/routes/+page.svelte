@@ -40,18 +40,24 @@
     }
 
     async function handleStarClick() {
-        clickCount++;
-        if (clickCount === 1) {
+        if (!showCard) {
             showCard = true;
-        } else if (clickCount === 2) {
-            if (notes.length === 0) {
-                await fetchNotes();
-            }
-            const idx = getExclusiveRandomIndex();
-            if (idx !== -1) {
-                currentNote = notes[idx];
-                showRandomNote = true;
-            }
+            return;
+        }
+        // After card is shown, show a new random note on every click
+        if (notes.length === 0) {
+            await fetchNotes();
+        }
+        if (notes.length === 0) {
+            // No notes to show
+            showRandomNote = false;
+            currentNote = null;
+            return;
+        }
+        const idx = getExclusiveRandomIndex();
+        if (idx !== -1) {
+            currentNote = notes[idx];
+            showRandomNote = true;
         }
     }
 
