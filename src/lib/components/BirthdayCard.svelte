@@ -23,11 +23,11 @@
         <div class="message">
             <p class="message-text">
                 Wishing you a magical year filled with love, laughter, and
-                adventure. You light up the sky, Taylor!
+                adventure. You light up the sky, my love!
             </p>
         </div>
         <div class="signature">
-            <p class="from-text">With love,</p>
+            <p class="from-text">Yours always,</p>
             <p class="from-name">Mike</p>
         </div>
         <div class="decorative-stars">
