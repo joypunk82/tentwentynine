@@ -1,30 +1,36 @@
-import fs from 'fs';
-import path from 'path';
-// Return all notes (for demo: read from local folder if no blob storage)
+// Return all notes from Vercel Blob storage or local folder
+
+import type { RequestHandler } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
+
 export const GET: RequestHandler = async () => {
     const token = (globalThis as any).process?.env?.BLOB_READ_WRITE_TOKEN as string | undefined;
     if (token) {
-        // TODO: Implement blob storage listing and reading for production
-        // For now, return empty array
-        return json([]);
-    } else {
-        // Local dev: read notes from a local folder (if exists)
-        const notesDir = path.resolve('notes');
-        let notes: any[] = [];
-        if (fs.existsSync(notesDir)) {
-            const files = fs.readdirSync(notesDir).filter(f => f.endsWith('.json'));
-            for (const file of files) {
+        // Use Vercel Blob API to list and fetch all notes
+        const { list } = await import('@vercel/blob');
+        const notes: any[] = [];
+        // List all blobs under the 'notes/' prefix
+        const result = await list({ prefix: 'notes/', token });
+        for (const blob of result.blobs) {
+            if (blob.pathname.endsWith('.json')) {
                 try {
-                    const content = fs.readFileSync(path.join(notesDir, file), 'utf-8');
-                    notes.push(JSON.parse(content));
+                    const res = await fetch(blob.downloadUrl);
+                    if (res.ok) {
+                        const text = await res.text();
+                        notes.push(JSON.parse(text));
+                    }
                 } catch { }
             }
         }
+        // Sort notes by createdAt descending (most recent first)
+        notes.sort((a, b) => (b.createdAt || 0).localeCompare(a.createdAt || 0));
         return json(notes);
+    } else {
+        // Local dev: fallback to empty array or implement local file reading if needed
+        return json([]);
     }
 };
-import type { RequestHandler } from '@sveltejs/kit';
-import { json } from '@sveltejs/kit';
+
 
 type Payload = {
     name?: string;
