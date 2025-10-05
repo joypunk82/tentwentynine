@@ -3,14 +3,14 @@
 </script>
 
 {#if note}
-    <div class="random-note-card">
+    <div class="note-card">
         <blockquote>{note.message}</blockquote>
         <div class="note-author">— {note.name}</div>
     </div>
 {/if}
 
 <style>
-    .random-note-card {
+    .note-card {
         position: fixed;
         left: 50%;
         top: 50%;
@@ -25,18 +25,13 @@
         max-width: 90vw;
         text-align: center;
     }
-    .random-note-card h3 {
-        margin-bottom: 1rem;
-        font-size: 1.3rem;
-        color: #ffe0a3;
-    }
-    .random-note-card blockquote {
+    .note-card blockquote {
         font-size: 1.1rem;
         margin: 0 0 1.2rem 0;
         color: #fff;
         font-style: italic;
     }
-    .random-note-card .note-author {
+    .note-card .note-author {
         color: #ffe0a3;
         font-size: 1rem;
         margin-top: 0.5rem;

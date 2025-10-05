@@ -4,7 +4,7 @@
     import GuestNoteCard from "$lib/components/GuestNoteCard.svelte";
     import AdminPanel from "$lib/components/AdminPanel.svelte";
 
-    import RandomNoteCard from "$lib/components/RandomNoteCard.svelte";
+    import NoteCard from "$lib/components/NoteCard.svelte";
     import { onMount } from "svelte";
 
     let showCard = false;
@@ -77,7 +77,7 @@
         <BirthdayCard />
     {/if}
     {#if showRandomNote && currentNote}
-        <RandomNoteCard note={currentNote} />
+        <NoteCard note={currentNote} />
     {/if}
 </AutumnSky>
 
