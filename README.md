@@ -36,3 +36,15 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+
+## Guest notes (optional persistence)
+
+The home page accepts a `?guest` URL parameter which shows a notecard where visitors can leave a birthday note for Taylor. Notes are accepted via `POST /api/notes`.
+
+By default (no storage configured), the endpoint returns 202 and logs the note to the server console without persistence.
+
+To persist notes on Vercel via Blob storage:
+
+1. Ensure the project uses the Vercel adapter (already configured).
+2. In your Vercel project settings, add an environment variable named `BLOB_READ_WRITE_TOKEN` with a token that has read/write access.
+3. Deploy. When set, notes are written to private keys under `notes/` in Blob Storage.
