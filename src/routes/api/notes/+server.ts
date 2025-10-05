@@ -82,3 +82,65 @@ export const POST: RequestHandler = async ({ request }) => {
     console.log('[notes] (non-persistent)', note);
     return json({ ok: true, persisted: false }, { status: 202 });
 };
+
+export const DELETE: RequestHandler = async ({ request }) => {
+    let data: { createdAt?: string };
+    try {
+        data = await request.json();
+    } catch {
+        return json({ error: 'Invalid JSON body' }, { status: 400 });
+    }
+
+    const createdAt = data.createdAt;
+    if (!createdAt) {
+        return json({ error: 'createdAt is required' }, { status: 400 });
+    }
+
+    const token = (globalThis as any).process?.env?.BLOB_READ_WRITE_TOKEN as string | undefined;
+    if (token) {
+        try {
+            // Use Vercel Blob API to list and find the note to delete
+            const { list, del } = await import('@vercel/blob');
+
+            // List all blobs under the 'notes/' prefix
+            const result = await list({ prefix: 'notes/', token });
+            let noteFound = false;
+
+            for (const blob of result.blobs) {
+                if (blob.pathname.endsWith('.json')) {
+                    try {
+                        // Fetch the note to check if it matches the createdAt
+                        const res = await fetch(blob.downloadUrl);
+                        if (res.ok) {
+                            const noteContent = await res.text();
+                            const note = JSON.parse(noteContent);
+
+                            if (note.createdAt === createdAt) {
+                                // Delete this blob
+                                await del(blob.url, { token });
+                                noteFound = true;
+                                break;
+                            }
+                        }
+                    } catch {
+                        // Skip this blob if there's an error reading it
+                        continue;
+                    }
+                }
+            }
+
+            if (noteFound) {
+                return json({ ok: true, deleted: true });
+            } else {
+                return json({ error: 'Note not found' }, { status: 404 });
+            }
+        } catch (error) {
+            console.error('Error deleting note:', error);
+            return json({ error: 'Failed to delete note' }, { status: 500 });
+        }
+    } else {
+        // No storage configured — simulate successful deletion for local dev
+        console.log('[notes] (non-persistent) Simulated deletion of note with createdAt:', createdAt);
+        return json({ ok: true, deleted: true, persisted: false });
+    }
+};

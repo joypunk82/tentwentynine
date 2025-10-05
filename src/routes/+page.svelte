@@ -2,6 +2,7 @@
     import AutumnSky from "$lib/components/AutumnSky.svelte";
     import BirthdayCard from "$lib/components/BirthdayCard.svelte";
     import GuestNoteCard from "$lib/components/GuestNoteCard.svelte";
+    import AdminPanel from "$lib/components/AdminPanel.svelte";
 
     import RandomNoteCard from "$lib/components/RandomNoteCard.svelte";
     import { onMount } from "svelte";
@@ -9,6 +10,7 @@
     let showCard = false;
     let showRandomNote = false;
     let showGuestNote = false;
+    let showAdmin = false;
     let notes: Array<{ name: string; message: string }> = [];
     let shownNoteIndexes: number[] = [];
     let currentNote: { name: string; message: string } | null = null;
@@ -65,6 +67,7 @@
         try {
             const url = new URL(window.location.href);
             showGuestNote = url.searchParams.has("guest");
+            showAdmin = url.searchParams.has("admin");
         } catch {}
     });
 </script>
@@ -80,6 +83,10 @@
 
 {#if showGuestNote}
     <GuestNoteCard />
+{/if}
+
+{#if showAdmin}
+    <AdminPanel />
 {/if}
 
 <style>
