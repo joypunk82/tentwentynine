@@ -13,8 +13,64 @@
     let notes: Note[] = [];
     let loading = true;
     let error = "";
+    let isAuthenticated = false;
+    let password = "";
+    let isLoggingIn = false;
+    let sessionToken = "";
+
+    async function login() {
+        if (!password.trim()) {
+            error = "Please enter a password";
+            return;
+        }
+
+        try {
+            isLoggingIn = true;
+            error = "";
+
+            const res = await fetch("/api/auth", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ password }),
+            });
+
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                sessionToken = data.sessionToken;
+                isAuthenticated = true;
+                // Store session in sessionStorage for this browser session
+                if (typeof window !== "undefined") {
+                    sessionStorage.setItem("adminToken", sessionToken);
+                }
+                password = ""; // Clear password field
+                fetchNotes(); // Load notes after successful login
+            } else {
+                error = data.error || "Authentication failed";
+            }
+        } catch (e) {
+            error =
+                "Login error: " +
+                (e instanceof Error ? e.message : "Unknown error");
+        } finally {
+            isLoggingIn = false;
+        }
+    }
+
+    function logout() {
+        isAuthenticated = false;
+        sessionToken = "";
+        notes = [];
+        if (typeof window !== "undefined") {
+            sessionStorage.removeItem("adminToken");
+        }
+    }
 
     async function fetchNotes() {
+        if (!isAuthenticated) return;
+
         try {
             loading = true;
             const res = await fetch("/api/notes");
@@ -68,75 +124,151 @@
         }
     }
 
+    function handleKeyPress(event: KeyboardEvent) {
+        if (event.key === "Enter") {
+            login();
+        }
+    }
+
     onMount(() => {
-        fetchNotes();
+        // Check for existing session
+        if (typeof window !== "undefined") {
+            const storedToken = sessionStorage.getItem("adminToken");
+            if (storedToken) {
+                // Verify token is still valid
+                fetch("/api/auth", {
+                    headers: {
+                        Authorization: `Bearer ${storedToken}`,
+                    },
+                })
+                    .then((res) => {
+                        if (res.ok) {
+                            sessionToken = storedToken;
+                            isAuthenticated = true;
+                            fetchNotes();
+                        } else {
+                            sessionStorage.removeItem("adminToken");
+                        }
+                    })
+                    .catch(() => {
+                        sessionStorage.removeItem("adminToken");
+                    });
+            }
+        }
     });
 </script>
 
 <div class="admin-panel">
-    <div class="admin-header">
-        <h1>Admin Panel</h1>
-        <button on:click={fetchNotes} class="refresh-btn" disabled={loading}>
-            {loading ? "Loading..." : "Refresh"}
-        </button>
-    </div>
+    {#if !isAuthenticated}
+        <div class="login-container">
+            <div class="login-form">
+                <h1>Admin Login</h1>
+                <div class="form-group">
+                    <input
+                        type="password"
+                        bind:value={password}
+                        on:keypress={handleKeyPress}
+                        placeholder="Enter admin password"
+                        disabled={isLoggingIn}
+                        class="password-input"
+                    />
+                </div>
+                <button
+                    on:click={login}
+                    disabled={isLoggingIn || !password.trim()}
+                    class="login-btn"
+                >
+                    {isLoggingIn ? "Logging in..." : "Login"}
+                </button>
 
-    {#if error}
-        <div class="error-message">
-            {error}
-            <button on:click={() => (error = "")} class="close-error">×</button>
-        </div>
-    {/if}
-
-    {#if loading}
-        <div class="loading">Loading notes...</div>
-    {:else if notes.length === 0}
-        <div class="no-notes">No notes found</div>
-    {:else}
-        <div class="notes-count">
-            {notes.length} note{notes.length === 1 ? "" : "s"} found
-        </div>
-
-        <div class="notes-grid">
-            {#each notes as note}
-                <div class="note-card">
-                    <div class="note-header">
-                        <h3>{note.name}</h3>
+                {#if error}
+                    <div class="error-message">
+                        {error}
                         <button
-                            on:click={() => deleteNote(note.createdAt)}
-                            class="delete-btn"
-                            title="Delete note"
+                            on:click={() => (error = "")}
+                            class="close-error">×</button
                         >
-                            Delete
-                        </button>
                     </div>
+                {/if}
+            </div>
+        </div>
+    {:else}
+        <div class="admin-header">
+            <h1>Admin Panel</h1>
+            <div class="header-actions">
+                <button
+                    on:click={fetchNotes}
+                    class="refresh-btn"
+                    disabled={loading}
+                >
+                    {loading ? "Loading..." : "Refresh"}
+                </button>
+                <button on:click={logout} class="logout-btn"> Logout </button>
+            </div>
+        </div>
 
-                    <div class="note-message">
-                        {note.message}
-                    </div>
+        {#if error}
+            <div class="error-message">
+                {error}
+                <button on:click={() => (error = "")} class="close-error"
+                    >×</button
+                >
+            </div>
+        {/if}
 
-                    {#if note.email}
-                        <div class="note-email">
-                            Email: {note.email}
+        {#if loading}
+            <div class="loading">Loading notes...</div>
+        {:else if notes.length === 0}
+            <div class="no-notes">No notes found</div>
+        {:else}
+            <div class="notes-count">
+                {notes.length} note{notes.length === 1 ? "" : "s"} found
+            </div>
+
+            <div class="notes-grid">
+                {#each notes as note}
+                    <div class="note-card">
+                        <div class="note-header">
+                            <h3>{note.name}</h3>
+                            <button
+                                on:click={() => deleteNote(note.createdAt)}
+                                class="delete-btn"
+                                title="Delete note"
+                            >
+                                Delete
+                            </button>
                         </div>
-                    {/if}
 
-                    <div class="note-meta">
-                        <div class="note-date">
-                            {formatDate(note.createdAt)}
+                        <div class="note-message">
+                            {note.message}
                         </div>
-                        {#if note.userAgent}
-                            <div class="note-user-agent" title={note.userAgent}>
-                                {note.userAgent.substring(0, 50)}{note.userAgent
-                                    .length > 50
-                                    ? "..."
-                                    : ""}
+
+                        {#if note.email}
+                            <div class="note-email">
+                                Email: {note.email}
                             </div>
                         {/if}
+
+                        <div class="note-meta">
+                            <div class="note-date">
+                                {formatDate(note.createdAt)}
+                            </div>
+                            {#if note.userAgent}
+                                <div
+                                    class="note-user-agent"
+                                    title={note.userAgent}
+                                >
+                                    {note.userAgent.substring(0, 50)}{note
+                                        .userAgent.length > 50
+                                        ? "..."
+                                        : ""}
+                                </div>
+                            {/if}
+                        </div>
                     </div>
-                </div>
-            {/each}
-        </div>
+                {/each}
+            </div>
+        {/if}
     {/if}
 </div>
 
@@ -156,6 +288,109 @@
         color: white;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
             sans-serif;
+    }
+
+    .login-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .login-form {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 40px;
+        max-width: 400px;
+        width: 100%;
+        text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-form h1 {
+        margin: 0 0 30px 0;
+        font-size: 2.2rem;
+        background: linear-gradient(45deg, #ffd700, #ffcc99);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .password-input {
+        width: 100%;
+        padding: 15px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 10px;
+        color: white;
+        font-size: 16px;
+        box-sizing: border-box;
+        transition: all 0.3s ease;
+    }
+
+    .password-input:focus {
+        outline: none;
+        border-color: #ffd700;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    }
+
+    .password-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 15px 20px;
+        background: linear-gradient(45deg, #ffd700, #ffcc99);
+        border: none;
+        border-radius: 10px;
+        color: #1a1a2e;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+
+    .login-btn:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(255, 215, 0, 0.3);
+    }
+
+    .login-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .logout-btn {
+        padding: 10px 20px;
+        background: rgba(255, 0, 0, 0.2);
+        border: 1px solid rgba(255, 0, 0, 0.4);
+        border-radius: 8px;
+        color: #ff6b6b;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+    }
+
+    .logout-btn:hover {
+        background: rgba(255, 0, 0, 0.3);
+        transform: translateY(-2px);
     }
 
     .admin-header {
